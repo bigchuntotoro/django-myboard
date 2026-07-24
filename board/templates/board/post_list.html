@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>게시판 목록</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome 아이콘 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family:
+          "Pretendard",
+          -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          Roboto,
+          sans-serif;
+      }
+      .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+      .table th {
+        font-weight: 600;
+        color: #495057;
+        border-top: none;
+      }
+      .table-hover tbody tr:hover {
+        background-color: #f1f3f5;
+        transition: background-color 0.2s;
+      }
+      .post-title {
+        color: #212529;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .post-title:hover {
+        color: #0d6efd;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container py-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+          <i class="fa-solid fa-list-check me-2 text-primary"></i>게시판 목록
+        </h2>
+        <a
+          href="{% url 'board:post_create' %}"
+          class="btn btn-primary px-4 py-2 shadow-sm rounded-pill"
+        >
+          <i class="fa-solid fa-pen me-2"></i>새 글 작성
+        </a>
+      </div>
+
+      <div class="card p-3">
+        <!-- 💡 검색 영역 추가 -->
+        <form
+          method="get"
+          action="{% url 'board:post_list' %}"
+          class="row g-2 justify-content-end mb-3"
+        >
+          <div class="col-auto">
+            <select name="search_type" class="form-select form-select-sm">
+              <option
+                value="title_content"
+                {%
+                if
+                search_type=""
+                ="title_content"
+                %}selected{%
+                endif
+                %}
+              >
+                제목+내용
+              </option>
+              <option
+                value="title"
+                {%
+                if
+                search_type=""
+                ="title"
+                %}selected{%
+                endif
+                %}
+              >
+                제목
+              </option>
+              <option
+                value="content"
+                {%
+                if
+                search_type=""
+                ="content"
+                %}selected{%
+                endif
+                %}
+              >
+                내용
+              </option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <input
+              type="text"
+              name="kw"
+              class="form-control form-control-sm"
+              placeholder="검색어를 입력하세요"
+              value="{{ kw }}"
+            />
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">
+              <i class="fa-solid fa-magnifying-glass me-1"></i>검색
+            </button>
+          </div>
+        </form>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 10%" class="text-center">번호</th>
+                <th>제목</th>
+                <th style="width: 20%" class="text-center">작성일</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for post in posts %}
+              <tr>
+                <td class="text-center text-secondary fw-semibold">
+                  {{ post.custom_num }}
+                </td>
+                <td>
+                  <a
+                    href="{% url 'board:post_detail' pk=post.pk %}"
+                    class="post-title"
+                    >{{ post.title }}</a
+                  >
+                </td>
+                <td class="text-center text-muted small">
+                  {{ post.created_at|date:"Y-m-d H:i" }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center py-5 text-muted">
+                  <i class="fa-regular fa-folder-open fa-2x mb-2 d-block"></i>
+                  {% if kw %} '{{ kw }}'에 대한 검색 결과가 없습니다. {% else %}
+                  등록된 게시글이 없습니다. 첫 글을 작성해 보세요! {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 페이징 영역 (검색어 조건 포함) -->
+        {% if posts.has_other_pages %}
+        <nav class="mt-4">
+          <ul class="pagination justify-content-center mb-1">
+            <!-- 1. 처음 페이지 -->
+            {% if posts.number > 1 %}
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page=1&search_type={{ search_type }}&kw={{ kw }}"
+                title="처음 페이지"
+                >&laquo;&laquo;</a
+              >
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;&laquo;</span>
+            </li>
+            {% endif %}
+
+            <!-- 2. 이전 페이지 -->
+            {% if posts.has_previous %}
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page={{ posts.previous_page_number }}&search_type={{ search_type }}&kw={{ kw }}"
+                title="이전 페이지"
+                >&laquo;</a
+              >
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;</span>
+            </li>
+            {% endif %}
+
+            <!-- 3. 페이지 번호 목록 -->
+            {% for i in posts.paginator.page_range %} {% if posts.number == i %}
+            <li class="page-item active" aria-current="page">
+              <span class="page-link">{{ i }}</span>
+            </li>
+            {% else %}
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page={{ i }}&search_type={{ search_type }}&kw={{ kw }}"
+                >{{ i }}</a
+              >
+            </li>
+            {% endif %} {% endfor %}
+
+            <!-- 4. 다음 페이지 -->
+            {% if posts.has_next %}
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page={{ posts.next_page_number }}&search_type={{ search_type }}&kw={{ kw }}"
+                title="다음 페이지"
+                >&raquo;</a
+              >
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&raquo;</span>
+            </li>
+            {% endif %}
+
+            <!-- 5. 끝 페이지 -->
+            {% if posts.number < posts.paginator.num_pages %}
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page={{ posts.paginator.num_pages }}&search_type={{ search_type }}&kw={{ kw }}"
+                title="마지막 페이지"
+                >&raquo;&raquo;</a
+              >
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&raquo;&raquo;</span>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>
