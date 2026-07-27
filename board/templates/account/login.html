@@ -38,9 +38,9 @@
       <h2>로그인이 필요합니다</h2>
       <p>서비스를 이용하시려면 소셜 계정으로 로그인해 주세요.</p>
 
-      <!-- 🟢 가장 안정적인 kakao_login 네임스페이스 활용 -->
+      <!-- 🟢 provider_login_url 태그로 next 값을 확실하게 인코딩 및 세션 전달 -->
       <a
-        href="{% url 'kakao_login' %}?next={{ request.GET.next|urlencode }}"
+        href="{% provider_login_url 'kakao' next=request.GET.next %}"
         class="btn-kakao"
       >
         카카오로 시작하기

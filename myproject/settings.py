@@ -42,9 +42,9 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 # 로그인 / 로그아웃 후 이동할 URL 설정
-LOGIN_REDIRECT_URL = '/board/'      # 로그인 성공 후 이동할 페이지
+LOGIN_REDIRECT_URL = 'board:post_list'      # 로그인 성공 후 이동할 페이지
 LOGOUT_REDIRECT_URL = '/board/'     # 로그아웃 후 이동할 페이지
-LOGIN_URL = '/accounts/login/'      # @login_required 시 이동할 로그인 페이지
+LOGIN_URL = '/accounts/login/'      # @login_required 시 이동할 로그인 페이
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
