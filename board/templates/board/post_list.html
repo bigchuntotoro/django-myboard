@@ -51,20 +51,67 @@
   </head>
   <body>
     <div class="container py-5">
+      <!-- 💡 상단 사용자 상태 / 로그인·로그아웃 영역 -->
+      <div class="d-flex justify-content-end align-items-center mb-3">
+        {% if user.is_authenticated %}
+        <span class="me-3 text-secondary small">
+          <i class="fa-solid fa-user me-1"></i
+          ><strong>{{ user.username }}</strong>님 환영합니다!
+        </span>
+        <form
+          method="post"
+          action="{% url 'account_logout' %}"
+          class="d-inline"
+        >
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="btn btn-sm btn-outline-danger rounded-pill"
+          >
+            <i class="fa-solid fa-right-from-bracket me-1"></i>로그아웃
+          </button>
+        </form>
+        {% else %}
+        <a
+          href="{% url 'account_login' %}?next={% url 'board:post_create' %}"
+          class="btn btn-sm btn-outline-primary rounded-pill me-2"
+        >
+          <i class="fa-solid fa-right-to-bracket me-1"></i>로그인
+        </a>
+        <a
+          href="{% url 'account_signup' %}"
+          class="btn btn-sm btn-primary rounded-pill"
+        >
+          <i class="fa-solid fa-user-plus me-1"></i>회원가입
+        </a>
+        {% endif %}
+      </div>
+
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">
           <i class="fa-solid fa-list-check me-2 text-primary"></i>게시판 목록
         </h2>
+
+        <!-- 💡 로그인 여부에 따른 [새 글 작성] 이동 처리 -->
+        {% if user.is_authenticated %}
         <a
           href="{% url 'board:post_create' %}"
           class="btn btn-primary px-4 py-2 shadow-sm rounded-pill"
         >
           <i class="fa-solid fa-pen me-2"></i>새 글 작성
         </a>
+        {% else %}
+        <a
+          href="{% url 'account_login' %}?next={% url 'board:post_create' %}"
+          class="btn btn-primary px-4 py-2 shadow-sm rounded-pill"
+        >
+          <i class="fa-solid fa-pen me-2"></i>새 글 작성
+        </a>
+        {% endif %}
       </div>
 
       <div class="card p-3">
-        <!-- 💡 검색 영역 추가 -->
+        <!-- 💡 검색 영역 (조건문 수정 완료) -->
         <form
           method="get"
           action="{% url 'board:post_list' %}"
@@ -116,7 +163,7 @@
               name="kw"
               class="form-control form-control-sm"
               placeholder="검색어를 입력하세요"
-              value="{{ kw }}"
+              value="{{ kw|default:'' }}"
             />
           </div>
           <div class="col-auto">
@@ -165,7 +212,7 @@
           </table>
         </div>
 
-        <!-- 페이징 영역 (검색어 조건 포함) -->
+        <!-- 페이징 영역 -->
         {% if posts.has_other_pages %}
         <nav class="mt-4">
           <ul class="pagination justify-content-center mb-1">

@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required  # 👈 로그인 권한 체크용
+from django.contrib import messages                        # 👈 권한 없음 알림용
 from .models import Post
 from .forms import PostForm
-from django.db.models import Q
 
 # 1. 목록 조회 (페이징 + 역순 번호 + 검색 기능)
 def post_list(request):
@@ -36,8 +38,8 @@ def post_list(request):
 
     return render(request, 'board/post_list.html', {
         'posts': posts,
-        'search_type': search_type,  # 👈 검색 타입 전달 (유지용)
-        'kw': kw,                    # 👈 검색어 전달 (유지용)
+        'search_type': search_type,
+        'kw': kw,
     })
 
 # 2. 상세 보기
@@ -45,20 +47,30 @@ def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
     return render(request, 'board/post_detail.html', {'post': post})
 
-# 3. 글 작성
+# 3. 글 작성 (로그인 필수 + 작성자 자동 지정)
+@login_required
 def post_create(request):
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
-            post = form.save()
+            post = form.save(commit=False) # DB에 즉시 저장하지 않고 객체 생성
+            post.author = request.user     # 👈 현재 로그인한 유저를 작성자로 입력
+            post.save()                    # DB 저장
             return redirect('board:post_detail', pk=post.pk)
     else:
         form = PostForm()
     return render(request, 'board/post_form.html', {'form': form, 'title': '글쓰기'})
 
-# 4. 글 수정
+# 4. 글 수정 (로그인 필수 + 본인 확인)
+@login_required
 def post_update(request, pk):
     post = get_object_or_404(Post, pk=pk)
+    
+    # 본인이 작성한 글이 아니면 수정 거부
+    if request.user != post.author:
+        messages.error(request, '수정 권한이 없습니다.')
+        return redirect('board:post_detail', pk=post.pk)
+
     if request.method == 'POST':
         form = PostForm(request.POST, instance=post)
         if form.is_valid():
@@ -68,9 +80,16 @@ def post_update(request, pk):
         form = PostForm(instance=post)
     return render(request, 'board/post_form.html', {'form': form, 'title': '글 수정'})
 
-# 5. 글 삭제
+# 5. 글 삭제 (로그인 필수 + 본인 확인)
+@login_required
 def post_delete(request, pk):
     post = get_object_or_404(Post, pk=pk)
+    
+    # 본인이 작성한 글이 아니면 삭제 거부
+    if request.user != post.author:
+        messages.error(request, '삭제 권한이 없습니다.')
+        return redirect('board:post_detail', pk=post.pk)
+
     if request.method == 'POST':
         post.delete()
         return redirect('board:post_list')

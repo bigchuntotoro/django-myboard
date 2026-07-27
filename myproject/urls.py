@@ -1,23 +1,17 @@
-"""
-URL configuration for myproject project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    # 관리자 페이지
     path('admin/', admin.site.urls),
+    
+    # 게시판 앱 URL
     path('board/', include('board.urls')),
+    
+    # django-allauth URL (카카오 로그인, 로그아웃 등)
+    path('accounts/', include('allauth.urls')),
+    
+    # 🟢 [추가] 루트 주소 접속 시 /board/ 로 자동 이동
+    path('', RedirectView.as_view(url='/board/', permanent=False)),
 ]

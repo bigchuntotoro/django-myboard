@@ -1,0 +1,50 @@
+{% load socialaccount %}
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>로그인</title>
+    <style>
+      .login-container {
+        max-width: 400px;
+        margin: 100px auto;
+        padding: 30px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .btn-kakao {
+        display: block;
+        width: 100%;
+        padding: 12px 0;
+        background-color: #fee500;
+        color: #000000;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 6px;
+        margin-top: 20px;
+        box-sizing: border-box;
+      }
+      .btn-kakao:hover {
+        background-color: #e6ce00;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h2>로그인이 필요합니다</h2>
+      <p>서비스를 이용하시려면 소셜 계정으로 로그인해 주세요.</p>
+
+      <!-- 🟢 가장 안정적인 kakao_login 네임스페이스 활용 -->
+      <a
+        href="{% url 'kakao_login' %}?next={{ request.GET.next|urlencode }}"
+        class="btn-kakao"
+      >
+        카카오로 시작하기
+      </a>
+    </div>
+  </body>
+</html>
