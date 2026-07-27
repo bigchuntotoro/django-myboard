@@ -1,3 +1,4 @@
+{% load socialaccount %}
 <!doctype html>
 <html lang="ko">
   <head>
@@ -36,6 +37,12 @@
         color: #333;
         font-size: 1.05rem;
       }
+      .profile-img {
+        width: 36px;
+        height: 36px;
+        object-fit: cover;
+        border-radius: 50%;
+      }
     </style>
   </head>
   <body>
@@ -43,22 +50,60 @@
       <div class="card p-4 p-md-5">
         <h2 class="fw-bold text-dark mb-3">{{ post.title }}</h2>
 
-        <!-- 날짜 표시 영역 -->
-        <div
-          class="d-flex align-items-center text-muted small pb-3 mb-4 border-bottom gap-3"
-        >
-          <div>
-            <i class="fa-regular fa-clock me-1"></i>
-            작성: {{ post.created_at|date:"Y-m-d H:i" }}
+        <!-- 작성자 정보 -->
+          <div class="d-flex align-items-center gap-2">
+            {% if post.author %}
+              {% get_social_accounts post.author as accounts %}
+
+              {% if accounts.kakao %}
+                {% with k_acc=accounts.kakao.0 %}
+                  <!-- 카카오 프로필 이미지 -->
+                  {% if k_acc.extra_data.properties.profile_image %}
+                    <img src="{{ k_acc.extra_data.properties.profile_image }}" alt="프로필" class="profile-img" />
+                  {% elif k_acc.extra_data.kakao_account.profile.profile_image_url %}
+                    <img src="{{ k_acc.extra_data.kakao_account.profile.profile_image_url }}" alt="프로필" class="profile-img" />
+                  {% else %}
+                    <i class="fa-solid fa-circle-user fa-2x text-secondary"></i>
+                  {% endif %}
+
+                  <!-- 카카오 닉네임 -->
+                  {% with prop_nick=k_acc.extra_data.properties.nickname prof_nick=k_acc.extra_data.kakao_account.profile.nickname %}
+                    <span class="fw-semibold text-dark">
+                      {{ prop_nick|default:prof_nick|default:post.author.username }}
+                    </span>
+                  {% endwith %}
+                {% endwith %}
+
+              {% else %}
+                <!-- 일반 로그인 유저 -->
+                <i class="fa-solid fa-circle-user fa-2x text-secondary"></i>
+                <span class="fw-semibold text-dark">
+                  {{ post.author.first_name|default:post.author.username }}
+                </span>
+              {% endif %}
+
+            {% else %}
+              <span class="text-secondary">익명</span>
+            {% endif %}
           </div>
-          <div class="border-start ps-3">
-            <i class="fa-solid fa-arrows-rotate me-1"></i>
-            수정: {{ post.updated_at|date:"Y-m-d H:i" }}
+
+          <!-- 작성/수정일 -->
+          <div class="d-flex align-items-center gap-3">
+            <div>
+              <i class="fa-regular fa-clock me-1"></i>
+              작성: {{ post.created_at|date:"Y-m-d H:i" }}
+            </div>
+            <div class="border-start ps-3 d-none d-sm-block">
+              <i class="fa-solid fa-arrows-rotate me-1"></i>
+              수정: {{ post.updated_at|date:"Y-m-d H:i" }}
+            </div>
           </div>
         </div>
 
+        <!-- 본문 내용 -->
         <div class="content-box mb-5">{{ post.content|linebreaks }}</div>
 
+        <!-- 버튼 영역 -->
         <div class="d-flex justify-content-between pt-3 border-top">
           <a
             href="{% url 'board:post_list' %}"
@@ -66,6 +111,9 @@
           >
             <i class="fa-solid fa-arrow-left me-1"></i>목록으로
           </a>
+
+          <!-- 본인이 작성한 글일 때만 수정/삭제 버튼 표시 -->
+          {% if user == post.author %}
           <div>
             <a
               href="{% url 'board:post_update' pk=post.pk %}"
@@ -80,6 +128,7 @@
               <i class="fa-solid fa-trash-can me-1"></i>삭제
             </a>
           </div>
+          {% endif %}
         </div>
       </div>
     </div>

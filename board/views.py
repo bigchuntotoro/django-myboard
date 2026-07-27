@@ -48,18 +48,22 @@ def post_detail(request, pk):
     return render(request, 'board/post_detail.html', {'post': post})
 
 # 3. 글 작성 (로그인 필수 + 작성자 자동 지정)
-@login_required
+@login_required  # 👈 로그인하지 않은 경우 자동으로 로그인 페이지로 리다이렉트
 def post_create(request):
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
-            post = form.save(commit=False) # DB에 즉시 저장하지 않고 객체 생성
-            post.author = request.user     # 👈 현재 로그인한 유저를 작성자로 입력
-            post.save()                    # DB 저장
+            post = form.save(commit=False)  # 👈 DB 저장 잠시 대기
+            post.author = request.user      # 👈 현재 카카오로 로그인한 사용자 할당!
+            post.save()                     # 👈 최종 저장
             return redirect('board:post_detail', pk=post.pk)
     else:
         form = PostForm()
-    return render(request, 'board/post_form.html', {'form': form, 'title': '글쓰기'})
+    
+    return render(request, 'board/post_form.html', {
+        'form': form,
+        'title': '새 글 작성'
+    })
 
 # 4. 글 수정 (로그인 필수 + 본인 확인)
 @login_required
